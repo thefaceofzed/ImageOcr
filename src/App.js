@@ -1,73 +1,79 @@
-// App.js
-import React, { useCallback, useEffect, useState } from 'react';
-import { createWorker } from 'tesseract.js';
-import './App.css';
-import './index.css';
+import React, { useState } from 'react';
+import Form from './Components/FormData';
 import { Circle } from './circle';
+import Footer from './Components/Footer';
+import 'tailwindcss/tailwind.css';
+import Navbar from './Components/Navbar';
 import logo from './DATA/logo.png';
-import background from './DATA/background.png';
+import backgroundImage from './DATA/background.png';
+import './index.css';
 
-function App() {
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [textResult, setTextResult] = useState("");
+import Testimonials from './Components/Testimonials ';
+import GetStarted from './Components/GetStarted';
 
-  const worker = createWorker();
+const App = () => {
+  const [image, setImage] = useState(null);
+  const [extractedData, setExtractedData] = useState(null);
+  const handleImageUpload = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+  
+    reader.onloadend = () => {
+      setImage(reader.result);
+    };
+  
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
 
-  const convertImageToText = useCallback(async () => {
-    if (!selectedImage) return;
-    await worker.load();
-    await worker.loadLanguage("eng");
-    await worker.initialize("eng");
-    const { data } = await worker.recognize(selectedImage);
-    setTextResult(data.text);
-  }, [worker, selectedImage]);
+  const handleApiCall = () => {
+    if (image) {
+      const options = {
+        method: 'POST',
+        headers: {
+          accept: 'application/json:',
+          'X-WORKER-EXTRACTOR-ID': '348c30aa-28e3-4bd9-8f3f-3c910a99c61c',
+          'X-WORKER-ENCODING': 'raw',
+          'X-WORKER-PDF-DPI': '150',
+          'X-WORKER-ASYNC': 'false',
+          'X-WORKER-AUTO-ADJUST-IMAGE-SIZE': 'true',
+          'X-WORKER-PROCESSING-MODE': 'per-page',
+          'content-type': 'image/*',
+          'X-WORKER-TOKEN': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZXNvdXJjZV9vd25lcl9pZCI6IjcxMDhkMmZjLTYxMGYtNDc5Mi05NmRlLTRkMmZkOTM1NDM1YyIsIndvcmtlcl90b2tlbl9pZCI6ImQ4MDkxYTIxLTQ4YzEtNGM2ZC1iOTU5LTg3M2EwMTUyYzAzZiIsInVzZXJfaWQiOiI3MTA4ZDJmYy02MTBmLTQ3OTItOTZkZS00ZDJmZDkzNTQzNWMifQ.uCTEv1vXL3EtFBfLMGUWRnr_KzA5tXlVikhtGCZahRk',
+        },
+        body: `data:image/jpeg;base64,${image.split(',')[1]}`,
+      };
 
-  useEffect(() => {
-    convertImageToText();
-  }, [selectedImage, convertImageToText]);
-
-  const handleChangeImage = (e) => {
-    if (e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
-    } else {
-      setSelectedImage(null);
-      setTextResult("");
+  
+      fetch('https://worker.formextractorai.com/v2/extract', options)
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        setExtractedData(data); // Mettez à jour l'état avec les données extraites
+      })
+      .catch(error => console.error(error));
     }
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-cover bg-center hover:bg-gray-700 transition duration-300 relative" style={{ backgroundImage: `url(${background})` }}>
-      <img src={logo} alt="idcard" className="w-[170px] h-[170px] rounded-glowing bg-gray-900 mt-2 mr-auto" />
+    <div className="min-h-screen flex flex-col bg-gray-900 text-white">
+    <img src={logo} alt="Dataprotect" className="w-[140px] h-[140px] rounded-glowing bg-gray-900 absolute top-0 left-0 ml-8 mt-8" />
+    <div className="mx-auto max-w-2xl flex-grow flex flex-col"> {/* Ajout de la classe flex ici */}
+      <Navbar />
+      <input type="file" accept="image/*" onChange={handleImageUpload} />
+      <button onClick={handleApiCall}>Envoyer à l'API</button>
 
-      <div className="header-container p-4 text-center text-white">
-        <h1 className="text-3xl font-semibold">Welcome to the new image to text generator</h1>
-        <p>Get words from images!</p>
-      </div>
-
-      <div className="input-wrapper p-4 flex flex-col items-center justify-center">
-        <label htmlFor="upload" className="text-blue-500 hover:underline cursor-pointer">
-          Upload Image
-        </label>
-        <input type="file" id="upload" accept="image/*" onChange={handleChangeImage} className="hidden" />
-      </div>
-
-      <div className="result p-4">
-        {selectedImage && (
-          <div className="box-image">
-            <img src={URL.createObjectURL(selectedImage)} alt="thumb" className="rounded-lg shadow-lg" />
-          </div>
-        )}
-        {textResult && (
-          <div className="box-p mt-4">
-            <p>{textResult}</p>
-          </div>
-        )}
-      </div>
-
+      {extractedData && <Form extractedData={extractedData} />}
       <Circle />
+      <GetStarted />
+      <Testimonials />
     </div>
-  );
-}
+    <div className="mt-auto">
+      <Footer />
+    </div>
+  </div>
+);
+};
 
 export default App;
-

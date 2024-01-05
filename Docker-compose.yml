@@ -1,0 +1,18 @@
+version: '3'
+services:
+  react-app:
+    # Nom de votre service
+    build:
+      # Chemin vers le Dockerfile
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      # Mappage du port du conteneur vers le port de l'hôte
+      - "3000:3000"
+    volumes:
+      # Montage du répertoire de travail du conteneur
+      - ./src:/app/src
+      - ./public:/app/public
+    environment:
+      # Variables d'environnement (si nécessaire)
+      - NODE_ENV=production
