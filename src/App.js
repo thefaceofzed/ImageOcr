@@ -10,6 +10,7 @@ import "./index.css";
 
 import Testimonials from "./Components/Testimonials ";
 import GetStarted from "./Components/GetStarted";
+import Checkout from "./Components/checkout";
 
 const App = () => {
   const [image, setImage] = useState(null);
@@ -97,7 +98,9 @@ const App = () => {
         <Circle />
         {/* <GetStarted /> */}
         <Testimonials />
+        <Checkout />
       </div>
+
       <div className="mt-auto">
         <Footer />
       </div>
